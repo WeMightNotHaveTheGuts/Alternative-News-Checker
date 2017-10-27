@@ -1,10 +1,7 @@
-import requests
-import bs4
-
 def main():
     InputData = ArticleInput()
+    CheckArticle = ArticleChecker(InputData)
     status = returnStatus()
-
 
 def ArticleInput():
     UserInput = input("Enter in fake news article: ")
@@ -13,7 +10,8 @@ def ArticleInput():
 def returnStatus():
     return "Unknown"
 
-def WebCheck():
-    
+def ArticleChecker(UserIn):
+    print UserIn
+
 
 main()
