@@ -5,14 +5,28 @@
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk, GObject
+import utilities
 
 # Create a new builder, build the GUI from the file
 builder = Gtk.Builder()
 builder.add_from_file("AlternativeGUI.glade")
 
+# GTK Widgets
+in_url = builder.get_object("input_url")
+lbl_result = builder.get_object("lbl_result")
+
 # This class will handle all widget events
 class Handler():
-    pass
+
+    def on_check_button_click(self, *args):
+        url = in_url.get_text()
+        if utilities.is_url_valid(url): lbl_result.set_text("Valid URL")
+        else: lbl_result.set_text("Invalid URL")
+        print(url)
+
+    def on_main_window_quit(self, window):
+        Gtk.main_quit(main_window)
+
 
 # Start the GUI
 if __name__ == "__main__":
