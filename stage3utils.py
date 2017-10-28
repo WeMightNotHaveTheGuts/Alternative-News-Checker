@@ -4,9 +4,23 @@ import re
 from collections import deque
 import urllib2
 
+
+import enchant, article_parser, nltk
+#nltk.download('punkt')
+
 article_title = ""
 
+def get_number_of_spelling_errors(url):
+    article_text = article_parser.get_article_text(url)
+    article_words = nltk.word_tokenize(article_text)
+    mispelled_words = []
+    spellcheck = enchant.Dict("en_US")
+    for word in article_words:
+        if not spellcheck.check(word): mispelled_words.append(word)
+    print article_words
 
+
+"""
 def longest_value(elems): # Finds the longest h1 tag in the webpage.
     longest = ""
     for i in elems:
@@ -16,8 +30,8 @@ def longest_value(elems): # Finds the longest h1 tag in the webpage.
     return longest
 
 def summarise(headline):
-    """given a headline in a string, returns a list containing the main words in that headline.
-    Useful for doing things such as finding the headline on other websites."""
+    given a headline in a string, returns a list containing the main words in that headline.
+    Useful for doing things such as finding the headline on other websites.
     head_words = headline.split(" ") # get each word individually
     headline_summary = []
     with open("stopwords.csv") as s:
@@ -115,7 +129,6 @@ def sourcesReliable (url, links):
             if site.contains(url_summariseR(link)[0].replace("www.","")):
         print
 
-    """
 
     for i in range(len(links)):
         thing = url_summariseR(links[i-1])
@@ -128,7 +141,6 @@ def sourcesReliable (url, links):
                     reliableSources = True
     return reliableSources
 
-    """
 
 def unReliableSources (url, links):
     unreliable = False
@@ -147,3 +159,6 @@ getAllLinks("http://www.independent.co.uk/news/business/google-amazon-profits-la
 #website("http://www.independent.co.uk/news/uk/politics/jeremy-corbyn-sexual-assault-is-parliament-thrives-mps-politicians-a8024026.html")
 #website("https://www.infowars.com/joy-villa-for-congress-trump-approves/")
 #website("http://www.bbc.co.uk/news/world-europe-41785292")
+"""
+
+get_number_of_spelling_errors("http://www.dailymail.co.uk/news/article-5018447/Australians-believe-country-support-Muslim-ban.html")

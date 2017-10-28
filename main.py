@@ -5,7 +5,7 @@
 import gi, threading
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk, GObject
-import utilities, page_parser, headline_summarise, stage1utils, stage2utils
+import article_parser, headline_summarise, stage1utils, stage2utils, validators, watson_utils
 
 # Globals
 headline_approved = False
@@ -50,8 +50,6 @@ class Handler():
         finish_at_stage2 = False
         finish_at_stage3 = False
 
-
-
         console_write("Fact checking started...")
 
         # Get the article headline keywords (used in Snopes search)
@@ -71,7 +69,7 @@ class Handler():
         url = in_url.get_text()
 
         # Check the article for validity first
-        if utilities.is_url_valid(url):
+        if validators.url(url):
             article_fetched = True
             article_url = url
             console_write("The given URL is valid!")
@@ -108,6 +106,7 @@ def stage1(keywords):
 
     keywords_reduced = False
 
+    console_write("", False)
     console_write("STAGE 1", True)
     browser = stage1utils.initialize_browser()
 
@@ -155,6 +154,7 @@ def stage1(keywords):
 def stage2():
     global finish_at_stage2
 
+    console_write("", False)
     console_write("STAGE 2", True)
     console_write("Extracting site name")
     site_name = stage2utils.isolate_domain_name(article_url)
@@ -186,18 +186,37 @@ def stage2():
 def stage3():
     global finish_at_stage3
 
+    console_write("", False)
     console_write("STAGE 3", True)
     console_write("At this point, we cannot reliably detect whether the article is fake or real news.")
     console_write("We present a list of flags that may indicate which is more likely.")
+    console_write("TEXT EMOTION ANALYSIS", True)
 
+    real_emotions = {"Analytical" : "ANALYTIC",
+                     "Tentative" : "TENTATIVE"}
+    fake_emotions = {"Sadness" : "expressing SADNESS",
+                     "Disgust" : "expressing DISGUST",
+                     "Confident" : "expressing CONFIDENCE",
+                     "Anger" : "expressing ANGER",
+                     "Fear" : "expressing FEAR"}
 
+    article_emotions = watson_utils.get_article_emotions(article_url)
+    for emotion, value in article_emotions.items():
+        if emotion in real_emotions:
+            if value > 0.75:
+                console_write("It is very likely that the text is %s, which s usually associated with REAL NEWS" % real_emotions[emotion])
+            elif value > 0.5:
+                console_write("It is likely that the text is %s, which is usually associated with REAL NEWS" % real_emotions[emotion])
+        elif emotion in fake_emotions:
+            if value > 0.75:
+                console_write("It is very likely that the text is %s, which is usually associated with FAKE NEWS" % fake_emotions[emotion])
+            elif value > 0.5:
+                console_write("It is likely that the text is %s, which is usually associated with FAKE NEWS" % fake_emotions[emotion])
 
 def user_validate_headline(url):
     global article_headline
 
-    page_parser.website(url)
-    article_headline = page_parser.article_title
-    in_article_headline.set_text(page_parser.article_title)
+    in_article_headline.set_text(article_parser.get_article_headline(url))
 
 def get_headline_keywords(headline):
     global article_headline_keywords
@@ -232,22 +251,24 @@ def ui_refresh():
     else:
         btn_fact_check.set_sensitive(False)
 
-def console_write(message, *important):
+def console_write(message, important=None):
     consoleMessage = Gtk.Label();
-    if important:
-        consoleMessage.set_text("-----------------%s------------------" % message)
-        consoleMessage.set_halign(Gtk.Align(3))
+    if important == True:
+        GObject.idle_add(consoleMessage.set_text, "-----------------%s------------------" % message)
+        GObject.idle_add(consoleMessage.set_halign, Gtk.Align(3))
+    elif important == False:
+        GObject.idle_add(consoleMessage.set_text, message)
     else:
-        consoleMessage.set_text("> %s" % message)
-        consoleMessage.set_halign(Gtk.Align(1))
-    consoleMessage.set_visible(True)
+        GObject.idle_add(consoleMessage.set_text, "> %s" % message)
+        GObject.idle_add(consoleMessage.set_halign, Gtk.Align(1))
 
-    lbox_console.add(consoleMessage)
+    GObject.idle_add(consoleMessage.set_visible, True)
+    GObject.idle_add(lbox_console.add, consoleMessage)
 
     adjustment = console_window.get_vadjustment()
     adjustment.set_value(adjustment.get_upper())
     adjustment.set_page_size(0.0)
-    console_window.set_vadjustment(adjustment)
+    GObject.idle_add(console_window.set_vadjustment, adjustment)
 
 
 
