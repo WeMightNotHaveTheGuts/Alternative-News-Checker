@@ -3,19 +3,19 @@ from bs4 import BeautifulSoup
 import re
 from collections import deque
 
-ArticleTitle = ""
+article_title = ""
 
-def Website(url): # Runs other functions
+def website(url): # Runs other functions
+    global article_title
     res = requests.get(url)
     res.raise_for_status()
     content = BeautifulSoup(res.text, "html.parser")
     elems = content.select('h1')
-    value = longestValue(elems)
-    global ArticleTitle
-    ArticleTitle = ''.join(value)
-    URLCheck(url, value)
+    value = longest_value(elems)
+    article_title = ''.join(value)
+    URL_check(url, value)
 
-def longestValue(elems): # Finds the longest h1 tag in the webpage.
+def longest_value(elems): # Finds the longest h1 tag in the webpage.
     longest = ""
     for i in elems:
         i = i.getText()
@@ -36,7 +36,7 @@ def summarise(headline):
                 headline_summary.append(str(word).lower())
     return headline_summary
 
-def urlsummarise(headline):
+def url_summarise(headline):
     headline = re.split(r"[- |, /]", headline) #Removes -'s and /'s from URL
     for i in range(2):
         headline.pop(0) # removes blank list entry and http
@@ -46,25 +46,23 @@ def urlsummarise(headline):
         i = i.lower()
     return headline
 
-def URLCheck(url, longest):
+def URL_check(url, longest):
+    global article_title
     occurences = 0
     value = summarise(longest)
-    urlSum = urlsummarise(url)
+    urlSum = url_summarise(url)
     domain = urlSum[0]
     urlSum.pop(0)
     for i in value:
         if i in urlSum:
             occurences += 1
     if occurences > len(value)/4:
-        global ArticleTitle
-        print "Article title is " + ArticleTitle
+        print "Article title is " + article_title
     else:
-        global ArticleTitle
-        print "Article title might be " + ArticleTitle
+        print "Article title might be " + article_title
 
 
-
-Website("http://www.independent.co.uk/news/business/google-amazon-profits-latest-earning-reports-billions-a8022286.html")
-Website("http://www.independent.co.uk/news/uk/politics/jeremy-corbyn-sexual-assault-is-parliament-thrives-mps-politicians-a8024026.html")
-Website("https://www.infowars.com/joy-villa-for-congress-trump-approves/")
-Website("http://www.bbc.co.uk/news/world-europe-41785292")
+#website("http://www.independent.co.uk/news/business/google-amazon-profits-latest-earning-reports-billions-a8022286.html")
+#website("http://www.independent.co.uk/news/uk/politics/jeremy-corbyn-sexual-assault-is-parliament-thrives-mps-politicians-a8024026.html")
+#website("https://www.infowars.com/joy-villa-for-congress-trump-approves/")
+#website("http://www.bbc.co.uk/news/world-europe-41785292")
