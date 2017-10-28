@@ -10,7 +10,8 @@ def summarise(headline):
         stop = s.read()
         for word in head_words:
             word = re.sub('\W', '', word)  # strip non-alphanumeric characters from word
-            if word not in stop:  # don't include any stopwords
+            if word.lower() not in stop:  # don't include any stopwords
                 headline_summary.append(word)
     return headline_summary
 
+print summarise("Yes he can: Barack Obama plans to show up for jury duty, judge says")
