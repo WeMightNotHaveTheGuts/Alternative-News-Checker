@@ -13,5 +13,3 @@ def summarise(headline):
             if word.lower() not in stop:  # don't include any stopwords
                 headline_summary.append(word)
     return headline_summary
-
-print summarise("Yes he can: Barack Obama plans to show up for jury duty, judge says")
