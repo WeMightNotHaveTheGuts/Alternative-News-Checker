@@ -13,6 +13,10 @@ article_fetched = False
 article_url = ""
 article_headline = ""
 article_headline_keywords = ""
+finish_at_stage1 = False
+finish_at_stage2 = False
+finish_at_stage3 = False
+
 
 # Create a new builder, build the GUI from the file
 builder = Gtk.Builder()
@@ -28,6 +32,7 @@ lbl_flags = builder.get_object("lbl_flags")
 chbox_headline_correct = builder.get_object("chbox_headline_correct")
 btn_fact_check = builder.get_object("btn_fact_check")
 lbox_console = builder.get_object("lbox_console")
+console_window = builder.get_object("console_scrolled_window")
 
 
 # This class will handle all widget events
@@ -51,8 +56,8 @@ class Handler():
 
         # Search for the keywords on Snopes.com
         console_write("Article headline keywords: [" + ", ".join(article_headline_keywords) + "]")
-        scan_thread = threading.Thread(target=stage1,args=article_headline_keywords,name="MainCheckThread")
-        scan_thread.start()
+        stage_thread = threading.Thread(target=stage_manager,args=article_headline_keywords,name="StageThread")
+        stage_thread.start()
 
         ui_refresh()
 
@@ -81,7 +86,18 @@ class Handler():
 In the first stage we take the keywords from the headline of the checked article and we try to figure out whether
 the article has been fact checked at Snopes.com
 """
-def stage1(*keywords):
+
+def stage_manager(*keywords):
+    stage1(keywords)
+    if finish_at_stage1: return
+
+    stage2()
+
+
+def stage1(keywords):
+    print keywords, type(keywords)
+    global finish_at_stage1
+
     keywords_reduced = False
 
     console_write("STAGE 1", True)
@@ -105,7 +121,8 @@ def stage1(*keywords):
             else:
                 console_write("Could not find a Snopes reference even with fewer keywords")
                 console_write("STAGE 1 END", True)
-                return False
+                finish_at_stage1 = False
+                return
 
     console_write("Looking for the Snopes reference article URL")
     factchecking_url = fake_checker.find_factchecking_url(most_relevant_result)
@@ -118,17 +135,21 @@ def stage1(*keywords):
         console_write("The search result is relevant enough, fetching the article truth rating")
         rating = fake_checker.fetch_rating(browser, factchecking_url)
 
-        console_write("-------------------")
+        console_write("VERDICT", True)
         console_write("The article is... " + rating)
         console_write("See %s for more information" % factchecking_url)
-        return True
+        finish_at_stage1 = True
     else:
         console_write("The best result is not relevant enough, the article is not likely fact checked at Snopes.com")
         console_write("STAGE 1 END", True)
-        return False
+        finish_at_stage1 = False
 
 def stage2():
+    global finish_at_stage2
 
+    console_write("STAGE 2", True)
+
+    pass
 
 def user_validate_headline(url):
     global article_headline
@@ -181,6 +202,13 @@ def console_write(message, *important):
     consoleMessage.set_visible(True)
 
     lbox_console.add(consoleMessage)
+
+    adjustment = console_window.get_vadjustment()
+    adjustment.set_value(adjustment.get_upper())
+    adjustment.set_page_size(0.0)
+    console_window.set_vadjustment(adjustment)
+
+
 
 # Start the GUI
 if __name__ == "__main__":
