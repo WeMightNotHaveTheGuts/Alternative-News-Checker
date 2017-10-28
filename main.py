@@ -5,11 +5,14 @@
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk, GObject
-import utilities, page_parser
+import utilities, page_parser, headline_summarise, snopes_search
 
 # Globals
 headline_approved = False
 article_fetched = False
+article_url = ""
+article_headline = ""
+article_headline_keywords = ""
 
 # Create a new builder, build the GUI from the file
 builder = Gtk.Builder()
@@ -37,18 +40,27 @@ class Handler():
         ui_refresh()
 
     def on_check_button_click(self, *args):
-        pass
+        global article_headline
+
+        # Get the article headline keywords (used in Snopes search)
+        article_headline = in_article_headline.get_text()
+        get_headline_keywords(article_headline)
+
+        # Search for the keywords on Snopes.com
+        print snopes_search.search_for_factchecks(article_headline_keywords)
 
         ui_refresh()
 
     def on_fetch_button_click(self, *args):
-        global article_fetched
+        global article_fetched, article_url
         url = in_url.get_text()
 
         # Check the article for validity first
         if utilities.is_url_valid(url):
-            lbl_validurl.set_text("The given URL is valid")
             article_fetched = True
+            article_url = url
+            lbl_validurl.set_text("The given URL is valid")
+
             ui_refresh()
             user_validate_headline(url)
         else:
@@ -62,8 +74,18 @@ class Handler():
 
 
 def user_validate_headline(url):
+    global article_headline
+
     page_parser.website(url)
+    article_headline = page_parser.article_title
     in_article_headline.set_text(page_parser.article_title)
+
+def get_headline_keywords(headline):
+    global article_headline_keywords
+
+    print headline_summarise.summarise(headline)
+    article_headline_keywords = headline_summarise.summarise(headline)
+
 
 def ui_refresh():
     if article_fetched:
