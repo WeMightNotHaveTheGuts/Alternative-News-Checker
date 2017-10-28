@@ -16,8 +16,32 @@ def website(url): # Runs other functions
     value = longest_value(elems)
     article_title = ''.join(value)
     URL_check(url, value)
-    if isCredibleURL(URL) == False:
-        print "This is a fake news website"
+    x = getAllLinks(url)
+    y = isURLCredible(url)
+    
+    while switch(x):
+        if case(1):
+            print "The sources of this webpage are credible"
+            break
+        if case(2):
+            print "The sources of this page are unreliable"
+            break
+        if case(3):
+            print "The sources of this page are not only unreliable but this webpage isn't even secure"
+            break
+        if case(4):
+            print "Thi webpage contains some credible and fake news websites as its references"
+            break
+        break
+    
+    while switch(y):
+        if case(1):
+            print "This webpage belongs to a website that produces fake news"
+            break
+        if case(2):
+            print "This webpage belongs to a website that produces highly credible information"
+            break
+        break
 
 def longest_value(elems): # Finds the longest h1 tag in the webpage.
     longest = ""
@@ -67,36 +91,53 @@ def URL_check(url, longest):
     else:
         print "Article title might be " + article_title
 
-#Checking is the URL is legit
-        
+#Checking if the URL is legit
+
+#isLigitURL: 0 = Neither; 1 = Unreliable; 2 = Reliable
+
 def isURLCredible(URL):
     substrl = url_summarise(URL)
     substrll = substrl[0]
     if "www." in substrll:
         substr = substrll[4:]
-    isLigitURL = True
+    isLigitURL = 0
     fakeURLList = file('FakeNewsWebsite.txt')
+    ligitURLList = file('ReliableNewsWebsites.txt')
     for line in fakeURLList:
         if substr in line:
-            isLigitURL = False
-    if isLigitURL == True:
-        print "Website is reliable"
-    else:
-        print "Wesite is not reliable"
+            isLigitURL = 1
+    for line in ligitURLList:
+        if substr in line:
+            isLigitURL = 2
     return isLigitURL
 
 #Getting all links from the URL then seeing if there are any sources/if
 #any credible sources -- Note that this very inefficient
-#Not implemented into program yet
+
+#Getting credibility of sources
+
+#Reliability: 0 = No sources on each side; 1 = Ligit sources; 2 = https with unreal sources
+#             3 = no https unreal sources; 4 = has both real and unreal sources
 
 def getAllLinks (url):
+    reliability = 0
     website = urllib2.urlopen(url)
     html = website.read()
     allLinks = re.findall('"((http|ftp)s?://.*?)"', html)
     links = [seq[0] for seq in allLinks ]
-    sourcesReliable(url, links)
+    if sourcesReliable(url, links) == True and unReliableSources(url, links) == True:
+        reliability = 4
+    elif sourcesReliable(url, links) == True:
+        reliability = 1
+    elif unReliableSources(url, links) == True:
+        if "https" in url:
+            reliability = 2
+        else:
+            reliability = 3
+    else:
+        reliability = 0
 
-#Refined for empty set rtee
+#Refined for empty set rtee, needs to be its own func as other url must have protocols!
 def url_summariseR(headline):
     headline = re.split(r"[- |, /]", headline) #Removes -'s and /'s from URL
     if len(headline) == 1:
@@ -124,7 +165,19 @@ def sourcesReliable (url, links):
                     reliableSources = True
     return reliableSources
 
-                
+def unReliableSources (url, links):
+    unreliable = False
+    for i in range(len(links)):
+        thing = url_summariseR(links[i-1])
+        newThing = thing[0]
+        if "www." in newThing:
+            newThing = newThing[4:]
+        if newThing not in url:
+            for line in file('FakeNewsWebsite.txt'):
+                if newThing in line:
+                    unreliable = True
+    return unreliable
+
 #website("http://www.independent.co.uk/news/business/google-amazon-profits-latest-earning-reports-billions-a8022286.html")
 #website("http://www.independent.co.uk/news/uk/politics/jeremy-corbyn-sexual-assault-is-parliament-thrives-mps-politicians-a8024026.html")
 #website("https://www.infowars.com/joy-villa-for-congress-trump-approves/")
