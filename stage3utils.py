@@ -6,44 +6,6 @@ import urllib2
 
 article_title = ""
 
-def website(url): # Runs other functions
-    global article_title
-
-    res = requests.get(url)
-    res.raise_for_status()
-    content = BeautifulSoup(res.text, "html.parser")
-
-    elems = content.select('h1')
-    value = longest_value(elems)
-    article_title = ''.join(value)
-
-    URL_check(url, value)
-    x = getAllLinks(url)
-    y = isURLCredible(url)
-    
-    while switch(x):
-        if case(1):
-            print "The sources of this webpage are credible"
-            break
-        if case(2):
-            print "The sources of this page are unreliable"
-            break
-        if case(3):
-            print "The sources of this page are not only unreliable but this webpage isn't even secure"
-            break
-        if case(4):
-            print "Thi webpage contains some credible and fake news websites as its references"
-            break
-        break
-    
-    while switch(y):
-        if case(1):
-            print "This webpage belongs to a website that produces fake news"
-            break
-        if case(2):
-            print "This webpage belongs to a website that produces highly credible information"
-            break
-        break
 
 def longest_value(elems): # Finds the longest h1 tag in the webpage.
     longest = ""
@@ -94,24 +56,6 @@ def URL_check(url, longest):
         print "Article title might be " + article_title
 
 #Checking if the URL is legit
-
-#isLigitURL: 0 = Neither; 1 = Unreliable; 2 = Reliable
-
-def isURLCredible(URL):
-    substrl = url_summarise(URL)
-    substrll = substrl[0]
-    if "www." in substrll:
-        substr = substrll[4:]
-    isLigitURL = 0
-    fakeURLList = file('FakeNewsWebsite.txt')
-    ligitURLList = file('ReliableNewsWebsites.txt')
-    for line in fakeURLList:
-        if substr in line:
-            isLigitURL = 1
-    for line in ligitURLList:
-        if substr in line:
-            isLigitURL = 2
-    return isLigitURL
 
 #Getting all links from the URL then seeing if there are any sources/if
 #any credible sources -- Note that this very inefficient

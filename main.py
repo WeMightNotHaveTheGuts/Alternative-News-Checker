@@ -45,7 +45,12 @@ class Handler():
         ui_refresh()
 
     def on_check_button_click(self, *args):
-        global article_headline
+        global article_headline, finish_at_stage3, finish_at_stage2, finish_at_stage1
+        finish_at_stage1 = False
+        finish_at_stage2 = False
+        finish_at_stage3 = False
+
+
 
         console_write("Fact checking started...")
 
@@ -92,6 +97,9 @@ def stage_manager(*keywords):
     if finish_at_stage1: return
 
     stage2()
+    if finish_at_stage2: return
+
+    stage3()
 
 
 def stage1(keywords):
@@ -164,10 +172,25 @@ def stage2():
         console_write("The article is most likely REAL due to the site being recognized as a reputable news site")
         finish_at_stage2 = True
         return
+    elif stage2utils.satire_news_sites_match(site_name):
+        console_write("The site matches our database of known SaTiRe news sites")
+        console_write("VERDICT", True)
+        console_write("It's just a JOKE bro!")
+        finish_at_stage2 = True
+        return
     else:
         console_write("The site has not been found in our database of fake/reputable news sources")
         console_write("STAGE 2 END", True)
         return
+
+def stage3():
+    global finish_at_stage3
+
+    console_write("STAGE 3", True)
+    console_write("At this point, we cannot reliably detect whether the article is fake or real news.")
+    console_write("We present a list of flags that may indicate which is more likely.")
+
+
 
 def user_validate_headline(url):
     global article_headline

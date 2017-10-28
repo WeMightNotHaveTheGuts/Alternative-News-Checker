@@ -47,7 +47,9 @@ def calculate_relevance(keywords, matched_words):
 def fetch_rating(browser, factchecking_url):
     ratings = {"claim false": "FALSE",
                "claim true": "TRUE",
-               "claim mixture": "MIXTURE"}
+               "claim mixture": "MIXTURE",
+               "claim mtrue" : "MOSTLY TRUE",
+               "claim mfalse": "MOSTLY FALSE"}
     browser.get(factchecking_url)
 
     # Fetch the fact checking page
@@ -56,4 +58,3 @@ def fetch_rating(browser, factchecking_url):
     for rating in ratings:
         if soup.find(class_=rating) != None: return ratings[rating]
     return "UNKNOWN"
-
