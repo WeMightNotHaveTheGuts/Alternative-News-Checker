@@ -144,6 +144,13 @@ def get_headline_keywords(headline):
     article_headline_keywords = headline_summarise.summarise(headline)
 
 
+def get_headline_keywords(headline):
+    global article_headline_keywords
+
+    print headline_summarise.summarise(headline)
+    article_headline_keywords = headline_summarise.summarise(headline)
+
+
 def ui_refresh():
     if article_fetched:
         in_article_headline.set_editable(True)
