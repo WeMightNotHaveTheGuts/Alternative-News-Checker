@@ -2,10 +2,10 @@
 # Glade - A GUI designer using the GTK framework
 
 # Necessary imports for the GUI
-import gi
+import gi, threading
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk, GObject
-import utilities, page_parser, headline_summarise, snopes_search
+import utilities, page_parser, headline_summarise, fake_checker
 
 # Globals
 headline_approved = False
@@ -20,7 +20,6 @@ builder.add_from_file("AlternativeGUI.glade")
 
 # GTK Widgets
 in_url = builder.get_object("input_url")
-lbl_validurl = builder.get_object("lbl_validurl")
 lbl_headline_prompt = builder.get_object("lbl_headline_prompt")
 lbl_article_headline = builder.get_object("lbl_article_headline")
 in_article_headline = builder.get_object("input_article_headline")
@@ -28,6 +27,7 @@ listbox_flags = builder.get_object("lbox_flags")
 lbl_flags = builder.get_object("lbl_flags")
 chbox_headline_correct = builder.get_object("chbox_headline_correct")
 btn_fact_check = builder.get_object("btn_fact_check")
+lbox_console = builder.get_object("lbox_console")
 
 
 # This class will handle all widget events
@@ -42,12 +42,17 @@ class Handler():
     def on_check_button_click(self, *args):
         global article_headline
 
+        console_write("Fact checking started...")
+
         # Get the article headline keywords (used in Snopes search)
+        console_write("Extracting article headline keywords")
         article_headline = in_article_headline.get_text()
         get_headline_keywords(article_headline)
 
         # Search for the keywords on Snopes.com
-        print snopes_search.search_for_factchecks(article_headline_keywords)
+        console_write("Article headline keywords: [" + ", ".join(article_headline_keywords) + "]")
+        scan_thread = threading.Thread(target=stage1,args=article_headline_keywords,name="MainCheckThread")
+        scan_thread.start()
 
         ui_refresh()
 
@@ -59,18 +64,70 @@ class Handler():
         if utilities.is_url_valid(url):
             article_fetched = True
             article_url = url
-            lbl_validurl.set_text("The given URL is valid")
+            console_write("The given URL is valid!")
 
             ui_refresh()
             user_validate_headline(url)
         else:
-            lbl_validurl.set_text("The given URL is invalid!")
+            console_write("The given URL is invalid! Please enter a valid URL")
         print(url)
 
         ui_refresh()
 
     def on_main_window_quit(self, window):
         Gtk.main_quit(main_window)
+
+"""
+In the first stage we take the keywords from the headline of the checked article and we try to figure out whether
+the article has been fact checked at Snopes.com
+"""
+def stage1(*keywords):
+    keywords_reduced = False
+
+    console_write("STAGE 1", True)
+    browser = fake_checker.initialize_browser()
+
+    console_write("Searching for article references at Snopes.com")
+    while (True):
+        search_terms = "+".join(keywords)
+        search_url = "https://www.snopes.com/?s=" + search_terms
+        print search_url
+        most_relevant_result = fake_checker.find_snopes_reference(browser, search_url)
+
+        if most_relevant_result:
+            break
+        else:
+            if (not keywords_reduced):
+                console_write("Could not find anything. Trying to use fewer keywords...")
+                keywords = keywords[::2]
+                keywords_reduced = True
+                console_write("New article headline keywords: [" + ", ".join(keywords) + "]")
+            else:
+                console_write("Could not find a Snopes reference even with fewer keywords")
+                console_write("STAGE 1 END", True)
+                return False
+
+    console_write("Looking for the Snopes reference article URL")
+    factchecking_url = fake_checker.find_factchecking_url(most_relevant_result)
+
+    matching_words = fake_checker.find_matching_search_result_words(most_relevant_result)
+
+    console_write("Found the best search result, calculating relevance")
+    relevance = fake_checker.calculate_relevance(keywords, matching_words)
+    if relevance > 0.3:
+        console_write("The search result is relevant enough, fetching the article truth rating")
+        rating = fake_checker.fetch_rating(browser, factchecking_url)
+
+        console_write("-------------------")
+        console_write("The article is... " + rating)
+        console_write("See %s for more information" % factchecking_url)
+        return True
+    else:
+        console_write("The best result is not relevant enough, the article is not likely fact checked at Snopes.com")
+        console_write("STAGE 1 END", True)
+        return False
+
+def stage2():
 
 
 def user_validate_headline(url):
@@ -106,7 +163,17 @@ def ui_refresh():
     else:
         btn_fact_check.set_sensitive(False)
 
+def console_write(message, *important):
+    consoleMessage = Gtk.Label();
+    if important:
+        consoleMessage.set_text("-----------------%s------------------" % message)
+        consoleMessage.set_halign(Gtk.Align(3))
+    else:
+        consoleMessage.set_text("> %s" % message)
+        consoleMessage.set_halign(Gtk.Align(1))
+    consoleMessage.set_visible(True)
 
+    lbox_console.add(consoleMessage)
 
 # Start the GUI
 if __name__ == "__main__":
@@ -121,8 +188,5 @@ if __name__ == "__main__":
     in_article_headline.set_visible(False)
 
     ui_refresh()
-
-    #lbl_flags.set_visible(False)
-    #listbox_flags.set_visible(False)
 
     Gtk.main()
