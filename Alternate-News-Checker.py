@@ -10,8 +10,7 @@ def ArticleInput():
 def returnStatus():
     return "Unknown"
 
-def ArticleChecker(UserIn):
-    print UserIn
-
+def ArticleChecker(data):
+    if '''"''' 
 
 main()
