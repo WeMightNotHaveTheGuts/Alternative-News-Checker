@@ -1,3 +1,5 @@
+import requests
+from bs4 import BeautifulSoup
 from headline_summarise import summarise
 def snope_search(headline_summary):
     """
@@ -9,7 +11,12 @@ def snope_search(headline_summary):
     """
     search_terms = "+".join(headline_summary)
     search_url = "https://www.snopes.com/?s=" + search_terms
-    print search_url
+    res = requests.get(search_url)
+    res.raise_for_status()
+    snopes_page = BeautifulSoup(res.text, "html-parser")
+    snopes_page_results = snopes_page.select(.search-result-post)
+    
+
 
 
 snope_search(summarise("Flight Crew Takes A Knee And Walks Off, Leaving New Orleans Saints Stranded On Runway"))
