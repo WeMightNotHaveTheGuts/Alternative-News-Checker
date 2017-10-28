@@ -5,7 +5,7 @@
 import gi, threading
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk, GObject
-import utilities, page_parser, headline_summarise, fake_checker
+import utilities, page_parser, headline_summarise, stage1utils, stage2utils
 
 # Globals
 headline_approved = False
@@ -101,14 +101,14 @@ def stage1(keywords):
     keywords_reduced = False
 
     console_write("STAGE 1", True)
-    browser = fake_checker.initialize_browser()
+    browser = stage1utils.initialize_browser()
 
     console_write("Searching for article references at Snopes.com")
     while (True):
         search_terms = "+".join(keywords)
         search_url = "https://www.snopes.com/?s=" + search_terms
         print search_url
-        most_relevant_result = fake_checker.find_snopes_reference(browser, search_url)
+        most_relevant_result = stage1utils.find_snopes_reference(browser, search_url)
 
         if most_relevant_result:
             break
@@ -125,15 +125,15 @@ def stage1(keywords):
                 return
 
     console_write("Looking for the Snopes reference article URL")
-    factchecking_url = fake_checker.find_factchecking_url(most_relevant_result)
+    factchecking_url = stage1utils.find_factchecking_url(most_relevant_result)
 
-    matching_words = fake_checker.find_matching_search_result_words(most_relevant_result)
+    matching_words = stage1utils.find_matching_search_result_words(most_relevant_result)
 
     console_write("Found the best search result, calculating relevance")
-    relevance = fake_checker.calculate_relevance(keywords, matching_words)
+    relevance = stage1utils.calculate_relevance(keywords, matching_words)
     if relevance > 0.3:
         console_write("The search result is relevant enough, fetching the article truth rating")
-        rating = fake_checker.fetch_rating(browser, factchecking_url)
+        rating = stage1utils.fetch_rating(browser, factchecking_url)
 
         console_write("VERDICT", True)
         console_write("The article is... " + rating)
@@ -148,8 +148,26 @@ def stage2():
     global finish_at_stage2
 
     console_write("STAGE 2", True)
+    console_write("Extracting site name")
+    site_name = stage2utils.isolate_domain_name(article_url)
+    console_write("Site name - %s" % site_name)
 
-    pass
+    if stage2utils.fake_news_sites_match(site_name):
+        console_write("The site matches our database of known fake news sites")
+        console_write("VERDICT", True)
+        console_write("The article is very likely to be FAKE or INACCURATE due to the site being known for creating and spreading fake news")
+        finish_at_stage2 = True
+        return
+    elif stage2utils.real_news_sites_match(site_name):
+        console_write("The site matches our database of known reputable news sites")
+        console_write("VERDICT", True)
+        console_write("The article is most likely REAL due to the site being recognized as a reputable news site")
+        finish_at_stage2 = True
+        return
+    else:
+        console_write("The site has not been found in our database of fake/reputable news sources")
+        console_write("STAGE 2 END", True)
+        return
 
 def user_validate_headline(url):
     global article_headline
@@ -223,5 +241,6 @@ if __name__ == "__main__":
     in_article_headline.set_visible(False)
 
     ui_refresh()
+
 
     Gtk.main()

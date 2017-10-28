@@ -6,6 +6,7 @@ from main import *
 """
 In the first stage we take the keywords from the headline of the checked article and we try to figure out whether
 the article has been fact checked at Snopes.com
+If so, we try to get to the Snopes reference and fetch its truth rating
 """
 
 def initialize_browser():
