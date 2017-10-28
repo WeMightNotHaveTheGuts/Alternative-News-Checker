@@ -14,8 +14,9 @@ def snope_search(headline_summary):
     res = requests.get(search_url)
     res.raise_for_status()
     snopes_page = BeautifulSoup(res.text, "html.parser")
-    snopes_page_results = snopes_page.select('.search-result-post')
-
+    snopes_page_results = snopes_page.select('.article-link-title')
+    for i in snopes_page_results:
+        print i.getText()
 
 
 
