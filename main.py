@@ -102,7 +102,6 @@ def stage_manager(*keywords):
 
     stage3()
 
-
 def stage1(keywords):
     print keywords, type(keywords)
     global finish_at_stage1
@@ -176,7 +175,7 @@ def stage2():
         finish_at_stage2 = True
         return
     elif stage2utils.satire_news_sites_match(site_name):
-        console_write("The site matches our database of known SaTiRe news sites")
+        console_write("The site matches our database of known SATIRE news sites")
         console_write("VERDICT", True)
         console_write("It's just a JOKE bro!")
         finish_at_stage2 = True
@@ -244,8 +243,6 @@ def stage3():
         console_write("The article uses quite a few words associated with FAKE NEWS websites")
     else:
         console_write("The article does not use many words associated with fake news websites, indicating it could be REAL NEWS")
-
-
 
 def user_validate_headline(url):
     global article_headline
