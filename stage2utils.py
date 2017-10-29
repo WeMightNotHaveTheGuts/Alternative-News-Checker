@@ -1,4 +1,4 @@
-from urlparse import urlparse
+from urlparse import urlparse, re
 
 
 """
@@ -7,7 +7,18 @@ If there is a match, we can say that the article is real/fake news with reasonab
 """
 
 def isolate_domain_name(url):
-    return urlparse(url).hostname.replace("www.","")
+    if "http" in url or "https" in url:
+        if urlparse(url[url.index("http"):]).hostname != None:
+            return urlparse(url[url.index("http"):]).hostname.replace("www.","")
+        else:
+            return ""
+    else:
+        if urlparse(url).hostname != None:
+            return urlparse(url).hostname.replace("www.","")
+        else:
+            return ""
+
+
 
 def fake_news_sites_match(site_name):
     fake_news_sites = []

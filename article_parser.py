@@ -9,3 +9,8 @@ def get_article_headline(url):
     g = Goose()
     article = g.extract(url=url)
     return article.title
+
+def get_article_links(url):
+    g = Goose()
+    article = g.extract(url=url)
+    return article.links

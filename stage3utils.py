@@ -1,23 +1,24 @@
-import requests
-from bs4 import BeautifulSoup
-import re
-from collections import deque
-import urllib2
+import stage2utils
 
 
-import enchant, article_parser, nltk
+import enchant, article_parser, nltk, re
 #nltk.download('punkt')
 
 article_title = ""
 
-def get_number_of_spelling_errors(url):
-    article_text = article_parser.get_article_text(url)
-    article_words = nltk.word_tokenize(article_text)
-    mispelled_words = []
-    spellcheck = enchant.Dict("en_US")
-    for word in article_words:
-        if not spellcheck.check(word): mispelled_words.append(word)
-    print article_words
+def get_article_links(url):
+    return article_parser.get_article_links(url)
+
+def get_links_reliability_rating(links):
+    links_to_fake_news = False
+    links_to_real_news = False
+    for link in links:
+        site_name = stage2utils.isolate_domain_name(link)
+        if site_name == "": continue
+        if stage2utils.real_news_sites_match(site_name): links_to_real_news = True
+        elif stage2utils.fake_news_sites_match(site_name): links_to_fake_news = True
+    return (links_to_real_news, links_to_fake_news)
+
 
 
 """
@@ -160,5 +161,3 @@ getAllLinks("http://www.independent.co.uk/news/business/google-amazon-profits-la
 #website("https://www.infowars.com/joy-villa-for-congress-trump-approves/")
 #website("http://www.bbc.co.uk/news/world-europe-41785292")
 """
-
-get_number_of_spelling_errors("http://www.dailymail.co.uk/news/article-5018447/Australians-believe-country-support-Muslim-ban.html")

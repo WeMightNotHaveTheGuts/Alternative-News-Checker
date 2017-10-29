@@ -5,7 +5,7 @@
 import gi, threading
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk, GObject
-import article_parser, headline_summarise, stage1utils, stage2utils, validators, watson_utils
+import article_parser, headline_summarise, stage1utils, stage2utils, validators, watson_utils, stage3utils
 
 # Globals
 headline_approved = False
@@ -49,6 +49,9 @@ class Handler():
         finish_at_stage1 = False
         finish_at_stage2 = False
         finish_at_stage3 = False
+
+        for item in lbox_console.get_children():
+            GObject.idle_add(lbox_console.remove, item)
 
         console_write("Fact checking started...")
 
@@ -190,6 +193,8 @@ def stage3():
     console_write("STAGE 3", True)
     console_write("At this point, we cannot reliably detect whether the article is fake or real news.")
     console_write("We present a list of flags that may indicate which is more likely.")
+
+    console_write("", False)
     console_write("TEXT EMOTION ANALYSIS", True)
 
     real_emotions = {"Analytical" : "ANALYTIC",
@@ -212,6 +217,21 @@ def stage3():
                 console_write("It is very likely that the text is %s, which is usually associated with FAKE NEWS" % fake_emotions[emotion])
             elif value > 0.5:
                 console_write("It is likely that the text is %s, which is usually associated with FAKE NEWS" % fake_emotions[emotion])
+
+    console_write("", False)
+    console_write("LINKED WEBSITES RELIABILITY", True)
+
+    article_links = stage3utils.get_article_links(article_url)
+    real_news_link, fake_news_link= stage3utils.get_links_reliability_rating(article_links)
+
+    if real_news_link:
+        console_write("The article links a reputable web site, indicating it could be REAL NEWS")
+    if fake_news_link:
+        console_write("The article links a known fake news web site, indicating it could be FAKE NEWS")
+    if not real_news_link and not fake_news_link:
+        console_write("The article does not link to any known reputable/fake news sites")
+
+
 
 def user_validate_headline(url):
     global article_headline
