@@ -4,47 +4,23 @@ import re
 from collections import deque
 import urllib2
 
+
+import enchant, article_parser, nltk
+#nltk.download('punkt')
+
 article_title = ""
 
-def website(url): # Runs other functions
-    global article_title
+def get_number_of_spelling_errors(url):
+    article_text = article_parser.get_article_text(url)
+    article_words = nltk.word_tokenize(article_text)
+    mispelled_words = []
+    spellcheck = enchant.Dict("en_US")
+    for word in article_words:
+        if not spellcheck.check(word): mispelled_words.append(word)
+    print article_words
 
-    res = requests.get(url)
-    res.raise_for_status()
-    content = BeautifulSoup(res.text, "html.parser")
 
-    elems = content.select('h1')
-    value = longest_value(elems)
-    article_title = ''.join(value)
-
-    URL_check(url, value)
-    x = getAllLinks(url)
-    y = isURLCredible(url)
-    
-    while switch(x):
-        if case(1):
-            print "The sources of this webpage are credible"
-            break
-        if case(2):
-            print "The sources of this page are unreliable"
-            break
-        if case(3):
-            print "The sources of this page are not only unreliable but this webpage isn't even secure"
-            break
-        if case(4):
-            print "Thi webpage contains some credible and fake news websites as its references"
-            break
-        break
-    
-    while switch(y):
-        if case(1):
-            print "This webpage belongs to a website that produces fake news"
-            break
-        if case(2):
-            print "This webpage belongs to a website that produces highly credible information"
-            break
-        break
-
+"""
 def longest_value(elems): # Finds the longest h1 tag in the webpage.
     longest = ""
     for i in elems:
@@ -54,8 +30,8 @@ def longest_value(elems): # Finds the longest h1 tag in the webpage.
     return longest
 
 def summarise(headline):
-    """given a headline in a string, returns a list containing the main words in that headline.
-    Useful for doing things such as finding the headline on other websites."""
+    given a headline in a string, returns a list containing the main words in that headline.
+    Useful for doing things such as finding the headline on other websites.
     head_words = headline.split(" ") # get each word individually
     headline_summary = []
     with open("stopwords.csv") as s:
@@ -94,24 +70,6 @@ def URL_check(url, longest):
         print "Article title might be " + article_title
 
 #Checking if the URL is legit
-
-#isLigitURL: 0 = Neither; 1 = Unreliable; 2 = Reliable
-
-def isURLCredible(URL):
-    substrl = url_summarise(URL)
-    substrll = substrl[0]
-    if "www." in substrll:
-        substr = substrll[4:]
-    isLigitURL = 0
-    fakeURLList = file('FakeNewsWebsite.txt')
-    ligitURLList = file('ReliableNewsWebsites.txt')
-    for line in fakeURLList:
-        if substr in line:
-            isLigitURL = 1
-    for line in ligitURLList:
-        if substr in line:
-            isLigitURL = 2
-    return isLigitURL
 
 #Getting all links from the URL then seeing if there are any sources/if
 #any credible sources -- Note that this very inefficient
@@ -171,7 +129,6 @@ def sourcesReliable (url, links):
             if site.contains(url_summariseR(link)[0].replace("www.","")):
         print
 
-    """
 
     for i in range(len(links)):
         thing = url_summariseR(links[i-1])
@@ -184,7 +141,6 @@ def sourcesReliable (url, links):
                     reliableSources = True
     return reliableSources
 
-    """
 
 def unReliableSources (url, links):
     unreliable = False
@@ -203,3 +159,6 @@ getAllLinks("http://www.independent.co.uk/news/business/google-amazon-profits-la
 #website("http://www.independent.co.uk/news/uk/politics/jeremy-corbyn-sexual-assault-is-parliament-thrives-mps-politicians-a8024026.html")
 #website("https://www.infowars.com/joy-villa-for-congress-trump-approves/")
 #website("http://www.bbc.co.uk/news/world-europe-41785292")
+"""
+
+get_number_of_spelling_errors("http://www.dailymail.co.uk/news/article-5018447/Australians-believe-country-support-Muslim-ban.html")

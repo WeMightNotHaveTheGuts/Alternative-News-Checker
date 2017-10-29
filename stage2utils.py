@@ -24,3 +24,11 @@ def real_news_sites_match(site_name):
             real_news_sites.append(site.strip().lower())
 
     return site_name in real_news_sites
+
+def satire_news_sites_match(site_name):
+    satire_news_sites = []
+    with open("SatireNewsWebsites.txt") as file:
+        for site in file.readlines():
+            satire_news_sites.append(site.strip().lower())
+
+    return site_name in satire_news_sites
