@@ -206,17 +206,22 @@ def stage3():
                      "Fear" : "expressing FEAR"}
 
     article_emotions = watson_utils.get_article_emotions(article_url)
-    for emotion, value in article_emotions.items():
-        if emotion in real_emotions:
-            if value > 0.75:
-                console_write("It is very likely that the text is %s, which s usually associated with REAL NEWS" % real_emotions[emotion])
-            elif value > 0.5:
-                console_write("It is likely that the text is %s, which is usually associated with REAL NEWS" % real_emotions[emotion])
-        elif emotion in fake_emotions:
-            if value > 0.75:
-                console_write("It is very likely that the text is %s, which is usually associated with FAKE NEWS" % fake_emotions[emotion])
-            elif value > 0.5:
-                console_write("It is likely that the text is %s, which is usually associated with FAKE NEWS" % fake_emotions[emotion])
+    if article_emotions != None:
+        for emotion, value in article_emotions.items():
+            if emotion in real_emotions:
+                if value > 0.75:
+                    console_write("It is very likely that the text is %s, which s usually associated with REAL NEWS" % real_emotions[emotion])
+                elif value > 0.5:
+                    console_write("It is likely that the text is %s, which is usually associated with REAL NEWS" % real_emotions[emotion])
+            elif emotion in fake_emotions:
+                if value > 0.75:
+                    console_write("It is very likely that the text is %s, which is usually associated with FAKE NEWS" % fake_emotions[emotion])
+                elif value > 0.5:
+                    console_write("It is likely that the text is %s, which is usually associated with FAKE NEWS" % fake_emotions[emotion])
+    else:
+        console_write("Unable to obtain the article text")
+        console_write("STAGE 3 END", True)
+        return
 
     console_write("", False)
     console_write("LINKED WEBSITES RELIABILITY", True)
@@ -230,6 +235,15 @@ def stage3():
         console_write("The article links a known fake news web site, indicating it could be FAKE NEWS")
     if not real_news_link and not fake_news_link:
         console_write("The article does not link to any known reputable/fake news sites")
+
+    console_write("", False)
+    console_write("SUSPICIOUS WORD DETECTION", True)
+    bad_word_count = stage3utils.get_suspicious_words(article_url)
+
+    if bad_word_count > 5:
+        console_write("The article uses quite a few words associated with FAKE NEWS websites")
+    else:
+        console_write("The article does not use many words associated with fake news websites, indicating it could be REAL NEWS")
 
 
 
