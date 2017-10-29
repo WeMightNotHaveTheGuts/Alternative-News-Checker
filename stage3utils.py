@@ -1,8 +1,7 @@
 import stage2utils
 
 
-import enchant, article_parser, nltk, re
-#nltk.download('punkt')
+import article_parser, re
 
 article_title = ""
 
@@ -19,6 +18,21 @@ def get_links_reliability_rating(links):
         elif stage2utils.fake_news_sites_match(site_name): links_to_fake_news = True
     return (links_to_real_news, links_to_fake_news)
 
+def get_suspicious_words(url):
+    total_count = 0
+    suspicious_words = []
+    article = article_parser.get_article_text(url).lower()
+
+    with open("SuspiciousWords.txt") as file:
+        for word in file.readlines():
+            suspicious_words.append(word)
+
+    for word in suspicious_words:
+        total_count += article.count(word)
+
+    print total_count
+
+get_suspicious_words("https://www.naturalnews.com/2017-10-27-the-science-agenda-to-exterminate-blacks-natural-news-to-expose-the-shocking-true-history-of-science-and-medicine-on-november-7-see-video-trailer.html")
 
 
 """
