@@ -1,6 +1,6 @@
 watson_developer_cloud==0.26.1
 selenium==3.6.0
-requests==2.18.4
+requests==2.20.0
 validators==0.12.0
 beautifulsoup4==4.6.0
 gi==1.2
